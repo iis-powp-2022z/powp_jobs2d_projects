@@ -1,17 +1,18 @@
 package edu.kis.powp.jobs2d.command.gui;
 
-import java.awt.Container;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JTextArea;
+import javax.swing.*;
 
+import edu.kis.legacy.drawer.panel.DrawPanelController;
+import edu.kis.legacy.drawer.shape.LineFactory;
 import edu.kis.powp.appbase.gui.WindowComponent;
+import edu.kis.powp.jobs2d.Job2dDriver;
+import edu.kis.powp.jobs2d.command.DriverCommand;
 import edu.kis.powp.jobs2d.command.manager.DriverCommandManager;
+import edu.kis.powp.jobs2d.drivers.adapter.LineDriverAdapter;
 import edu.kis.powp.observer.Subscriber;
 
 public class CommandManagerWindow extends JFrame implements WindowComponent {
@@ -19,9 +20,12 @@ public class CommandManagerWindow extends JFrame implements WindowComponent {
 	private DriverCommandManager commandManager;
 
 	private JTextArea currentCommandField;
+	private JPanel currentCommandPreview;
 
 	private String observerListString;
 	private JTextArea observerListField;
+
+	private Job2dDriver previewAdapter;
 
 	/**
 	 * 
@@ -30,7 +34,7 @@ public class CommandManagerWindow extends JFrame implements WindowComponent {
 
 	public CommandManagerWindow(DriverCommandManager commandManager) {
 		this.setTitle("Command Manager");
-		this.setSize(400, 400);
+		this.setSize(800, 800);
 		Container content = this.getContentPane();
 		content.setLayout(new GridBagLayout());
 
@@ -56,6 +60,13 @@ public class CommandManagerWindow extends JFrame implements WindowComponent {
 		content.add(currentCommandField, c);
 		updateCurrentCommandField();
 
+		currentCommandPreview = new JPanel();//added panel to preview
+		c.fill = GridBagConstraints.BOTH;
+		c.weightx = 1;
+		c.gridx = 0;
+		c.weighty = 3;
+		content.add(currentCommandPreview, c);//Added for main screen
+
 		JButton btnClearCommand = new JButton("Clear command");
 		btnClearCommand.addActionListener((ActionEvent e) -> this.clearCommand());
 		c.fill = GridBagConstraints.BOTH;
@@ -71,15 +82,32 @@ public class CommandManagerWindow extends JFrame implements WindowComponent {
 		c.gridx = 0;
 		c.weighty = 1;
 		content.add(btnClearObservers, c);
+
+		DrawPanelController drawPanelController = new DrawPanelController();//Controller for drawning
+		drawPanelController.initialize(currentCommandPreview);
+		previewAdapter = new LineDriverAdapter(drawPanelController , LineFactory.getBasicLine(), "Preview");//Create adapter for drawning
 	}
 
 	private void clearCommand() {
 		commandManager.clearCurrentCommand();
 		updateCurrentCommandField();
+		updateCurrentCommandPreview();//uzycie
 	}
 
 	public void updateCurrentCommandField() {
 		currentCommandField.setText(commandManager.getCurrentCommandString());
+	}
+
+	public void updateCurrentCommandPreview() {
+		clearCurrentCommandPreview();
+		DriverCommand command = commandManager.getCurrentCommand();
+		if (command != null) {
+			command.execute(previewAdapter);
+		}
+	}
+
+	private void clearCurrentCommandPreview() {//Function for clearing screen
+		currentCommandPreview.getGraphics().clearRect(0, 0, getWidth(), getHeight());
 	}
 
 	public void deleteObservers() {
