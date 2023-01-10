@@ -9,7 +9,7 @@ import edu.kis.powp.jobs2d.magicpresets.FiguresJoe;
  * @author Dominik
  */
 public class Job2dDriverTest {
-	private static Job2dDriver driver = new StubDriver();
+	static Job2dDriver driver = new StubDriver();
 
 	/**
 	 * Driver test.
